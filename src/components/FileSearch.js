@@ -1,4 +1,6 @@
-import React,{useState,useEffect,useRef} from 'react'
+import React,{useState,useEffect,useRef, Fragment} from 'react'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSearch , faTimes } from '@fortawesome/free-solid-svg-icons'
 
 const FileSearch = ({title,onFileSearch}) => {
     const [inputActive,setInputActive] = useState(false);
@@ -30,19 +32,21 @@ const FileSearch = ({title,onFileSearch}) => {
         }
     },[inputActive])
     return (
-        <div className="alert alert-primary">
+        <div className="alert alert-primary d-flex justify-content-between align-items-center">
             { !inputActive &&
-                <div className="d-flex justify-content-between align-items-center">
+                <Fragment>
                     <span>{title}</span>
                     <button
                         type="button"
-                        className="btn btn-primary"
+                        className="icon-search"
                         onClick={()=>{setInputActive(true)}}
-                    >搜索</button>
-                </div>
+                    >
+                    <FontAwesomeIcon title="搜索" icon={faSearch}></FontAwesomeIcon>
+                    </button>
+                </Fragment>
             }
             { inputActive &&
-                <div className="row">
+                <Fragment>
                     <input
                         className="form-control col-8"
                         value={value}
@@ -51,10 +55,12 @@ const FileSearch = ({title,onFileSearch}) => {
                     ></input>
                     <button
                         type="button"
-                        className="btn btn-primary col-4"
+                        className="icon-close"
                         onClick={closeSearch}
-                    >关闭</button>
-                </div>
+                    >
+                    <FontAwesomeIcon title="关闭" icon={faTimes}></FontAwesomeIcon>
+                    </button>
+                </Fragment>
 
             }
         </div>
