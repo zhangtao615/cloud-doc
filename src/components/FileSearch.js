@@ -1,4 +1,5 @@
 import React,{useState,useEffect,useRef, Fragment} from 'react'
+import PropTypes from 'prop-types'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch , faTimes } from '@fortawesome/free-solid-svg-icons'
 
@@ -32,7 +33,7 @@ const FileSearch = ({title,onFileSearch}) => {
         }
     },[inputActive])
     return (
-        <div className="alert alert-primary d-flex justify-content-between align-items-center">
+        <div className="alert alert-primary d-flex justify-content-between align-items-center mb-0" style={{maxHeight:50}}>
             { !inputActive &&
                 <Fragment>
                     <span>{title}</span>
@@ -41,14 +42,14 @@ const FileSearch = ({title,onFileSearch}) => {
                         className="icon-search"
                         onClick={()=>{setInputActive(true)}}
                     >
-                    <FontAwesomeIcon title="搜索" icon={faSearch}></FontAwesomeIcon>
+                        <FontAwesomeIcon title="搜索" icon={faSearch}></FontAwesomeIcon>
                     </button>
                 </Fragment>
             }
             { inputActive &&
                 <Fragment>
                     <input
-                        className="form-control col-8"
+                        className="form-control"
                         value={value}
                         ref={node}
                         onChange={(e)=>{setValue(e.target.value)}}
@@ -58,12 +59,19 @@ const FileSearch = ({title,onFileSearch}) => {
                         className="icon-close"
                         onClick={closeSearch}
                     >
-                    <FontAwesomeIcon title="关闭" icon={faTimes}></FontAwesomeIcon>
+                        <FontAwesomeIcon title="关闭" icon={faTimes}></FontAwesomeIcon>
                     </button>
                 </Fragment>
 
             }
         </div>
     )
+}
+FileSearch.propTypes = {
+    title:PropTypes.string,
+    onFileSearch:PropTypes.func.isRequired
+}
+FileSearch.defultProps = {
+    title:'我的云文档'
 }
 export default FileSearch;
