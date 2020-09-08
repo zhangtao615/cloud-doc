@@ -39,7 +39,7 @@ const FileSearch = ({title,onFileSearch}) => {
                     <span>{title}</span>
                     <button
                         type="button"
-                        className="icon-search"
+                        className="icon-button"
                         onClick={()=>{setInputActive(true)}}
                     >
                         <FontAwesomeIcon title="搜索" icon={faSearch}></FontAwesomeIcon>
@@ -56,7 +56,7 @@ const FileSearch = ({title,onFileSearch}) => {
                     ></input>
                     <button
                         type="button"
-                        className="icon-close"
+                        className="icon-button"
                         onClick={closeSearch}
                     >
                         <FontAwesomeIcon title="关闭" icon={faTimes}></FontAwesomeIcon>

@@ -1,6 +1,9 @@
-.icon-search,.icon-close{
+.icon-button{
   background:none;
   border: 0;
   color: inherit;
+}
+.c-link{
+  cursor: pointer;
 }
 
