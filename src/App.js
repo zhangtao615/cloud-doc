@@ -3,6 +3,7 @@ import FileSearch from './components/FileSearch'
 import FileList from './components/FileList'
 import defaultFiles  from './utils/defaultFiles'
 import Button from './components/Button'
+import TabList from './components/TabList'
 import { faPlus , faFileImport } from '@fortawesome/free-solid-svg-icons'
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
@@ -39,8 +40,12 @@ function App() {
             </div>
           </div>
         </div>
-        <div className="col-9 bg-primary right-panel">
-          right
+        <div className="col-9 right-panel">
+          <TabList
+            files={defaultFiles}
+            onTabClick={(id)=>{console.log(id)}}
+            activedId="1"
+          ></TabList>
         </div>
       </div>
     </div>

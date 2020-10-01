@@ -32,26 +32,26 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
             { 
                 files.map(file => (
                     <li
-                        className="list-group-item bg-light d-flex align-items-center file-item"
+                        className="list-group-item bg-light d-flex align-items-center file-item mx-0"
                         key={file.id}
                     >
                       { (file.id !== editStatus) &&
                         <Fragment>
                           <span className="col-2"><FontAwesomeIcon icon={faMarkdown} /></span>
-                          <span className="col-8 c-link"
+                          <span className="col-6 c-link"
                             onClick={()=>{onFileClick(file.id)}}
                           >{file.title}</span>
                           
                           <button
                               type="button"
-                              className="icon-button col-1"
+                              className="icon-button col-2"
                               onClick={()=>{setEditStatus(file.id);setValue(file.title)}}
                           >
                               <FontAwesomeIcon title="编辑" icon={faEdit}></FontAwesomeIcon>
                           </button>
                           <button
                               type="button"
-                              className="icon-button col-1"
+                              className="icon-button col-2"
                               onClick={onFileDelete}
                           >
                               <FontAwesomeIcon title="删除" icon={faTrash}></FontAwesomeIcon>
