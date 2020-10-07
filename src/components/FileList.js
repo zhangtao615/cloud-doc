@@ -52,7 +52,7 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
                           <button
                               type="button"
                               className="icon-button col-2"
-                              onClick={onFileDelete}
+                              onClick={() => {onFileDelete(files.id)}} 
                           >
                               <FontAwesomeIcon title="删除" icon={faTrash}></FontAwesomeIcon>
                           </button>
