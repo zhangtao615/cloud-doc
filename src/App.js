@@ -5,6 +5,8 @@ import defaultFiles  from './utils/defaultFiles'
 import Button from './components/Button'
 import TabList from './components/TabList'
 import { faPlus , faFileImport } from '@fortawesome/free-solid-svg-icons'
+import SimpleMDE from "react-simplemde-editor";
+import "easymde/dist/easymde.min.css";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 
@@ -48,6 +50,17 @@ function App() {
             onCloseTab={(id) => {console.log(id)}}
             activedId="1"
           ></TabList>
+          <SimpleMDE className="mt-2"
+            value={defaultFiles[1].body}
+            options={{
+              minHeight:'620px',
+              autosave: {
+                enabled:true,
+                delay:1000
+              },
+              tabSize: 2
+            }}
+          ></SimpleMDE>
         </div>
       </div>
     </div>
