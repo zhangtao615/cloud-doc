@@ -2,24 +2,28 @@ import React,{Fragment, useState} from 'react';
 import FileSearch from './components/FileSearch'
 import FileList from './components/FileList'
 import defaultFiles  from './utils/defaultFiles'
+import {flattenArr, objToArr} from './utils/helper'
 import Button from './components/Button'
 import TabList from './components/TabList'
 import { faPlus , faFileImport } from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from "react-simplemde-editor";
+import { v4 as uuidv4 } from 'uuid';
 import "easymde/dist/easymde.min.css";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 
 function App() {
-  const [files, setFiles] = useState(defaultFiles) //已有的markdown文档
+  const [files, setFiles] = useState(flattenArr(defaultFiles)) //已有的markdown文档
   const [activeFileID, setActiveFileID] = useState('') //正在展示的markdown文档
   const [openFileIDs, setOpenFileIDs] = useState([]) //所有打开的markdown文档
   const [unsavedFileIDs, setUnsavedFileIDs] = useState([]) //未保存的的markdown文档
-  const [searchedFiles, setSearchedFiles] = useState([])
+  const [searchedFiles, setSearchedFiles] = useState([]) //搜索结果的文件
+  const filesArr = objToArr(files)
+  const fileListArr = searchedFiles.length > 0 ? searchedFiles : filesArr
   const openedFiles = openFileIDs.map(openID => {
-    return files.find(files => files.id === openID)
+    return files[openID]
   })
-  const activeFile = files.find(files => files.id === activeFileID)
+  const activeFile = files[activeFileID]
   //点击打开某个markdown文档
   const fileClick = (fileID) => {
     //当前点击的文件ID
@@ -46,36 +50,37 @@ function App() {
   }
   const fileChange = (id,value) => {
     //更新文件
-    const newFiles = files.map(files => {
-      if(files.id === id){
-        files.body = value
-      }
-      return files
-    })
-    setFiles(newFiles)
+    const newFile = { ...files[id],body:value}
+    setFiles({ ...files,[id]:newFile})
     if (!unsavedFileIDs.includes(id)){
       setUnsavedFileIDs([ ...unsavedFileIDs, id])
     }
   }
   const deleteFile = (id) => {
-    const newFiles = files.filter(file => file.id !== id)
-    setFiles(newFiles)
+    delete files[id]
+    setFiles(files)
     tabClose(id)
   }
   const updateFileName = (id,title) => {
-    const newFiles = files.map(files => {
-      if(files.id === id) {
-        files.title = title
-      }
-      return files
-    })
-    setFiles(newFiles)
+   const modifiedFile = { ...files[id], title, isNew: false}
+    setFiles({ ...files, [id]:modifiedFile})
   }
   const fileSearch = (keyword) => {
-    const newFiles = files.filter(files => files.title.includes(keyword))
+    const newFiles = filesArr.filter(files => files.title.includes(keyword))
     setSearchedFiles(newFiles)
   }
-  const fileListArr = searchedFiles.length > 0 ? searchedFiles : files
+  //创建新文档
+  const createNewFile = () => {
+    const newID = uuidv4()
+    const newFile = {
+      id:newID,
+      title:'',
+      body:'## 请输入 Markdown',
+      createdAt: new Date().getTime(),
+      isNew:true
+    }
+    setFiles({...files, [newID]:newFile})
+  }
   return (
     <div className="App container-fluid px-0">
       <div className="row  no-gutters">
@@ -96,6 +101,7 @@ function App() {
                 text="新建"
                 colorClass="btn-primary"
                 icon={faPlus}
+                onBtnClick={createNewFile}
               ></Button>
             </div>
             <div className="col">

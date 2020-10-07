@@ -19,7 +19,7 @@ const TabList = ({ files, activedId, unsavedIds, onTabClick, onCloseTab}) => {
                     <li className="nav-item" key={files.id}>
                         <a href="#"
                          className={fClassName}
-                         onClick={(e) => {e.preventDefault();onTabClick(files.id);alert(files.id)}}>
+                         onClick={(e) => {e.preventDefault();onTabClick(files.id);}}>
                           {files.title}
                           <span className="ml-2 close-icon">
                             <FontAwesomeIcon

@@ -7,15 +7,22 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
     const [editStatus, setEditStatus] = useState(false);
     const [value, setValue] = useState('');
     useEffect(()=>{
+      const newFile = files.find(files => files.isNew)
+      if(newFile) {
+        setEditStatus(newFile.id)
+        setValue(newFile.title)
+      }
+    },[files])
+    useEffect(()=>{
       const handleInputEvent = (event) => {
           const  { keyCode} = event
-          if(keyCode === 13 && setEditStatus){
-            const editItem = files.find(files => files.id === editStatus)
+          const editItem = files.find(files => files.id === editStatus)
+          if(keyCode === 13 && setEditStatus && value.trim() !== ''){
             setEditStatus(false);
             setValue('');
             onSaveEdit(editItem.id,value);
           }else if(keyCode === 27){
-              closeSearch(event)
+            closeSearch(editItem)
           }
       }
       document.addEventListener('keyup',handleInputEvent);
@@ -23,9 +30,12 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
           document.removeEventListener('keyup',handleInputEvent)
       }
   })
-    const closeSearch = () => {
+    const closeSearch = (editItem) => {
       setEditStatus('false');
       setValue('')
+      if (editItem.isNew) {
+        onFileDelete(editItem.id)
+      }
     }
     return(
         <ul className="list-group list-group-flush file-list">
@@ -35,7 +45,7 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
                         className="list-group-item bg-light d-flex align-items-center file-item mx-0"
                         key={files.id}
                     >
-                      { (files.id !== editStatus) &&
+                      { (files.id !== editStatus && !files.isNew) &&
                         <Fragment>
                           <span className="col-2"><FontAwesomeIcon icon={faMarkdown} /></span>
                           <span className="col-6 c-link"
@@ -58,17 +68,18 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
                           </button>
                         </Fragment>
                       }
-                      { (files.id === editStatus) && 
+                      { ((files.id === editStatus) || files.isNew) && 
                         <Fragment>
                           <input
                             className="form-control col-10"
                             value={value}
+                            placeholder="请输入文件名"
                             onChange={(e)=>{setValue(e.target.value)}}
                           ></input>
                           <button
                             type="button"
                             className="icon-button col-2"
-                            onClick={closeSearch}
+                            onClick={()=> {closeSearch(files)}}
                           >
                             <FontAwesomeIcon title="关闭" icon={faTimes}></FontAwesomeIcon>
                           </button>
