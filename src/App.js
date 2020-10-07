@@ -1,25 +1,28 @@
 import React,{Fragment, useState} from 'react';
 import FileSearch from './components/FileSearch'
 import FileList from './components/FileList'
-import defaultFiles  from './utils/defaultFiles'
+// import defaultFiles  from './utils/defaultFiles'
 import {flattenArr, objToArr} from './utils/helper'
-import Button from './components/Button'
+import fileHelper from './utils/fileHelper'
+import ButtonBtn from './components/ButtonBtn'
 import TabList from './components/TabList'
-import { faPlus , faFileImport } from '@fortawesome/free-solid-svg-icons'
+import { faPlus , faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from "react-simplemde-editor";
 import { v4 as uuidv4 } from 'uuid';
 import "easymde/dist/easymde.min.css";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
-
+const { join } = window.require('path')
+const { remote } = window.require('electron')
 function App() {
-  const [files, setFiles] = useState(flattenArr(defaultFiles)) //已有的markdown文档
+  const [files, setFiles] = useState(flattenArr([])) //已有的markdown文档
   const [activeFileID, setActiveFileID] = useState('') //正在展示的markdown文档
   const [openFileIDs, setOpenFileIDs] = useState([]) //所有打开的markdown文档
   const [unsavedFileIDs, setUnsavedFileIDs] = useState([]) //未保存的的markdown文档
   const [searchedFiles, setSearchedFiles] = useState([]) //搜索结果的文件
   const filesArr = objToArr(files)
   const fileListArr = searchedFiles.length > 0 ? searchedFiles : filesArr
+  const savedLocation = remote.app.getPath('desktop') //获取文件地址
   const openedFiles = openFileIDs.map(openID => {
     return files[openID]
   })
@@ -43,7 +46,7 @@ function App() {
     setOpenFileIDs(tabWithout)
     //关闭当前文件后的处理
     if(tabWithout.length > 0){
-      setActiveFileID(tabWithout[0])
+      setActiveFileID(tabWithout[tabWithout.length-1])
     }else {
       setActiveFileID('')
     }
@@ -61,9 +64,18 @@ function App() {
     setFiles(files)
     tabClose(id)
   }
-  const updateFileName = (id,title) => {
+  const updateFileName = (id, title, isNew) => {
    const modifiedFile = { ...files[id], title, isNew: false}
-    setFiles({ ...files, [id]:modifiedFile})
+   if(isNew) {
+      fileHelper.writeFile(join(savedLocation, `${title}.md`), files[id].body).then(() => {
+        setFiles({ ...files, [id]:modifiedFile})
+      })
+   }else{
+      fileHelper.renameFile(join(savedLocation, `${files[id].title}.md`),join(savedLocation, `${title}.md`)).then(()=>{
+        setFiles({ ...files, [id]:modifiedFile})
+      })
+   }
+   
   }
   const fileSearch = (keyword) => {
     const newFiles = filesArr.filter(files => files.title.includes(keyword))
@@ -73,13 +85,18 @@ function App() {
   const createNewFile = () => {
     const newID = uuidv4()
     const newFile = {
-      id:newID,
-      title:'',
-      body:'## 请输入 Markdown',
+      id: newID,
+      title: '',
+      body: '## 请输出 Markdown',
       createdAt: new Date().getTime(),
-      isNew:true
+      isNew: true,
     }
-    setFiles({...files, [newID]:newFile})
+    setFiles({ ...files, [newID]: newFile })
+  }
+  const saveCurrentFile = (id) => {
+    fileHelper.writeFile(join(savedLocation, `${activeFile.title}.md`),activeFile.body).then(() => {
+      setUnsavedFileIDs(unsavedFileIDs.filter(id => id !== activeFile.id))
+    })
   }
   return (
     <div className="App container-fluid px-0">
@@ -97,19 +114,19 @@ function App() {
           ></FileList>
           <div className="row no-gutters button-group">
             <div className="col">
-              <Button
+              <ButtonBtn
                 text="新建"
                 colorClass="btn-primary"
                 icon={faPlus}
                 onBtnClick={createNewFile}
-              ></Button>
+              />
             </div>
             <div className="col">
-              <Button
+              <ButtonBtn
                 text="导入"
                 colorClass="btn-success"
                 icon={faFileImport}
-              ></Button>
+              />
             </div>
           </div>
         </div>
@@ -133,7 +150,7 @@ function App() {
                 value={activeFile && activeFile.body}
                 onChange={(value) => {fileChange(activeFile.id, value)}}
                 options={{
-                  minHeight:'620px',
+                  minHeight:'610px',
                   autosave: {
                     enabled:true,
                     delay:1000
@@ -141,6 +158,12 @@ function App() {
                   tabSize: 2
                 }}
               ></SimpleMDE>
+              <ButtonBtn
+                text="保存"
+                colorClass="btn-success"
+                icon={faSave}
+                onBtnClick={saveCurrentFile}
+              />
           </Fragment>
         }
         </div>

@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-const Button = ({text,colorClass,icon,onBtnClick}) => {
+const ButtonBtn = ({text,colorClass,icon,onBtnClick}) => {
     return(
         <button
             type="button"
@@ -16,13 +16,13 @@ const Button = ({text,colorClass,icon,onBtnClick}) => {
     
 }
 
-Button.propTypes = {
+ButtonBtn.propTypes = {
     text:PropTypes.string,
     colorClass:PropTypes.string,
     icon:PropTypes.element.isRequired,
     onBtnClick:PropTypes.func
 }
-Button.defultProps = {
+ButtonBtn.defultProps = {
     text:'新建'
 }
-export default Button
+export default ButtonBtn
