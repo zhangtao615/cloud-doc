@@ -10,7 +10,7 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
       const handleInputEvent = (event) => {
           const  { keyCode} = event
           if(keyCode === 13 && setEditStatus){
-            const editItem = files.find(file => file.id === editStatus)
+            const editItem = files.find(files => files.id === editStatus)
             setEditStatus(false);
             setValue('');
             onSaveEdit(editItem.id,value);
@@ -30,22 +30,22 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
     return(
         <ul className="list-group list-group-flush file-list">
             { 
-                files.map(file => (
+                files.map(files => (
                     <li
                         className="list-group-item bg-light d-flex align-items-center file-item mx-0"
-                        key={file.id}
+                        key={files.id}
                     >
-                      { (file.id !== editStatus) &&
+                      { (files.id !== editStatus) &&
                         <Fragment>
                           <span className="col-2"><FontAwesomeIcon icon={faMarkdown} /></span>
                           <span className="col-6 c-link"
-                            onClick={()=>{onFileClick(file.id)}}
-                          >{file.title}</span>
+                            onClick={()=>{onFileClick(files.id)}}
+                          >{files.title}</span>
                           
                           <button
                               type="button"
                               className="icon-button col-2"
-                              onClick={()=>{setEditStatus(file.id);setValue(file.title)}}
+                              onClick={()=>{setEditStatus(files.id);setValue(files.title)}}
                           >
                               <FontAwesomeIcon title="编辑" icon={faEdit}></FontAwesomeIcon>
                           </button>
@@ -58,7 +58,7 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
                           </button>
                         </Fragment>
                       }
-                      { (file.id === editStatus) && 
+                      { (files.id === editStatus) && 
                         <Fragment>
                           <input
                             className="form-control col-10"
@@ -83,7 +83,7 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
 }
 
 FileList.propTypes = {
-    file:PropTypes.array,
+    files:PropTypes.array,
     onFileClick:PropTypes.func,
     onFileDelete:PropTypes.func,
     onSaveEdit:PropTypes.func
