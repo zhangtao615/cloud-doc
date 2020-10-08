@@ -12,17 +12,35 @@ import { v4 as uuidv4 } from 'uuid';
 import "easymde/dist/easymde.min.css";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
+
 const { join } = window.require('path')
 const { remote } = window.require('electron')
+const Store = window.require('electron-store')
+const fileStore = new Store({'name':'cloud file'})
+
+const saveFilesToStore = (files) => {
+  const filesStoreObj = objToArr(files).reduce((result,file) => {
+    const { id, path, title, createdAt } = file
+    result[id] = {
+      id,
+      path,
+      title,
+      createdAt,
+    }
+    return result
+  }, {})
+  fileStore.set('files',filesStoreObj)
+}
+
 function App() {
-  const [files, setFiles] = useState(flattenArr([])) //已有的markdown文档
+  const [files, setFiles] = useState(fileStore.get('files') || {}) //已有的markdown文档
   const [activeFileID, setActiveFileID] = useState('') //正在展示的markdown文档
   const [openFileIDs, setOpenFileIDs] = useState([]) //所有打开的markdown文档
   const [unsavedFileIDs, setUnsavedFileIDs] = useState([]) //未保存的的markdown文档
   const [searchedFiles, setSearchedFiles] = useState([]) //搜索结果的文件
   const filesArr = objToArr(files)
   const fileListArr = searchedFiles.length > 0 ? searchedFiles : filesArr
-  const savedLocation = remote.app.getPath('desktop') //获取文件地址
+  const savedLocation = remote.app.getPath('desktop') //存储文件地址
   const openedFiles = openFileIDs.map(openID => {
     return files[openID]
   })
@@ -60,20 +78,28 @@ function App() {
     }
   }
   const deleteFile = (id) => {
-    delete files[id]
-    setFiles(files)
-    tabClose(id)
+    fileHelper.deleteFile(files[id].path).then(() => {
+      delete files[id]
+      setFiles(files)
+      saveFilesToStore(files)
+      tabClose(id)
+    })
   }
   const updateFileName = (id, title, isNew) => {
-   const modifiedFile = { ...files[id], title, isNew: false}
+   const newPath = join(savedLocation, `${title}.md`)
+   const modifiedFile = { ...files[id], title, isNew: false, path:newPath}
+   const newFiles = { ...files, [id]:modifiedFile}
    if(isNew) {
-      fileHelper.writeFile(join(savedLocation, `${title}.md`), files[id].body).then(() => {
-        setFiles({ ...files, [id]:modifiedFile})
-      })
+    fileHelper.writeFile(newPath, files[id].body).then(() => {
+      setFiles( newFiles )
+      saveFilesToStore(newFiles)
+    })
    }else{
-      fileHelper.renameFile(join(savedLocation, `${files[id].title}.md`),join(savedLocation, `${title}.md`)).then(()=>{
-        setFiles({ ...files, [id]:modifiedFile})
-      })
+    const oldPath = join(savedLocation, `${files[id].title}.md`)
+    fileHelper.renameFile(oldPath, newPath).then(()=>{
+      setFiles( newFiles )
+      saveFilesToStore(newFiles)
+    })
    }
    
   }
