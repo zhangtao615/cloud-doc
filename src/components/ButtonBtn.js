@@ -19,7 +19,7 @@ const ButtonBtn = ({text,colorClass,icon,onBtnClick}) => {
 ButtonBtn.propTypes = {
     text:PropTypes.string,
     colorClass:PropTypes.string,
-    icon:PropTypes.element.isRequired,
+    icon:PropTypes.object.isRequired,
     onBtnClick:PropTypes.func
 }
 ButtonBtn.defultProps = {

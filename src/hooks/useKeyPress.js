@@ -1,26 +1,27 @@
-import  {useState, useEffect} from 'react';
+import { useState, useEffect } from 'react'
 
 const useKeyPress = (targetKeyCode) => {
-    const [keyPressed, setKeyPressed] = useState(false);
-    const keyDownHanlder = ({keyCode}) => {
-        if(keyCode === targetKeyCode) {
-            setKeyPressed(true);
-        }
+  const [keyPressed, setKeyPressed] = useState(false)
+  
+  const keyDownHandler = ({ keyCode }) => {
+    if(keyCode === targetKeyCode) {
+      setKeyPressed(true)
     }
-    const keyUpHanlder = ({keyCode}) => {
-        if(keyCode === targetKeyCode) {
-            setKeyPressed(false);
-        }
+  }
+  const keyUpHandler = ({ keyCode }) => {
+    if(keyCode === targetKeyCode) {
+      setKeyPressed(false)
     }
-    useEffect(()=>{
-        document.addEventListener('keydown',keyDownHanlder)
-        document.addEventListener('keyup',keyUpHanlder)
-        return () => {
-            document.removeEventListener('keydown',keyDownHanlder)
-            document.removeEventListener('keyup',keyUpHanlder)
-        }
-    },[])
-    return keyPressed;
+  }
+  useEffect(() => {
+    document.addEventListener('keydown', keyDownHandler)
+    document.addEventListener('keyup', keyUpHandler)
+    return () => {
+      document.removeEventListener('keydown', keyDownHandler)
+      document.removeEventListener('keyup', keyUpHandler)     
+    }
+  }, [])
+  return keyPressed
 }
 
 export default useKeyPress
