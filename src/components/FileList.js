@@ -34,7 +34,7 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
   //   }
   // }, [editStatus])
   const closeSearch = (editItem) => {
-    setEditStatus('false');
+    setEditStatus(false);
     setValue('')
     if (editItem.isNew) {
       onFileDelete(editItem)

@@ -83,6 +83,8 @@ function App() {
       setFiles(files)
       saveFilesToStore(files)
       tabClose(id)
+    }).catch(err => {
+      console.log(err)
     })
   }
   const updateFileName = (id, title, isNew) => {
