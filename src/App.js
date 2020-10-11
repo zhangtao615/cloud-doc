@@ -49,6 +49,13 @@ function App() {
   const fileClick = (fileID) => {
     //当前点击的文件ID
     setActiveFileID(fileID)
+    const currentFile = files[fileID]
+    if (!currentFile.isLoaded) {
+      fileHelper.readFile(currentFile.path).then(value => {
+        const newFile = { ...files[fileID], body: value, isLOaded: true }
+        setFiles({ ...files, [fileID]: newFile})
+      })
+    }
     if(!openFileIDs.includes(fileID)){//如果文件未打开
       //将这个文件加入到打开数组中
       setOpenFileIDs([ ...openFileIDs, fileID])
@@ -78,14 +85,17 @@ function App() {
     }
   }
   const deleteFile = (id) => {
-    fileHelper.deleteFile(files[id].path).then(() => {
-      delete files[id]
-      setFiles(files)
-      saveFilesToStore(files)
-      tabClose(id)
-    }).catch(err => {
-      console.log(err)
-    })
+    if (files[id].isNew) {
+      const { [id]: value, ...afterDelete } = files
+      setFiles(afterDelete)
+    } else {
+      fileHelper.deleteFile(files[id].path).then(() => {
+        const { [id]: value, ...afterDelete } = files
+        setFiles(afterDelete)
+        saveFilesToStore(afterDelete)
+        tabClose(id)
+      })
+    }
   }
   const updateFileName = (id, title, isNew) => {
    const newPath = join(savedLocation, `${title}.md`)

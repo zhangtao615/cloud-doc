@@ -28,11 +28,11 @@ const FileList = ({files, onFileClick, onSaveEdit, onFileDelete}) => {
       closeSearch(editItem.id)
     }
   })
-  // useEffect(() => {
-  //   if (editStatus) {
-  //     node.current.focus()
-  //   }
-  // }, [editStatus])
+  useEffect(() => {
+    if (editStatus) {
+      node.current.focus()
+    }
+  }, [editStatus])
   const closeSearch = (editItem) => {
     setEditStatus(false);
     setValue('')
