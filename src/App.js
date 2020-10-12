@@ -13,7 +13,7 @@ import "easymde/dist/easymde.min.css";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-const { join } = window.require('path')
+const { join, dirname } = window.require('path')
 const { remote } = window.require('electron')
 const Store = window.require('electron-store')
 const fileStore = new Store({'name':'cloud file'})
@@ -98,7 +98,7 @@ function App() {
     }
   }
   const updateFileName = (id, title, isNew) => {
-   const newPath = join(savedLocation, `${title}.md`)
+   const newPath = isNew ? join(savedLocation, `${title}.md`) : join(dirname(files[id].path), `${title}.md`)
    const modifiedFile = { ...files[id], title, isNew: false, path:newPath}
    const newFiles = { ...files, [id]:modifiedFile}
    if(isNew) {
@@ -107,9 +107,9 @@ function App() {
       saveFilesToStore(newFiles)
     })
    }else{
-    const oldPath = join(savedLocation, `${files[id].title}.md`)
+    const oldPath = files[id].path
     fileHelper.renameFile(oldPath, newPath).then(()=>{
-      setFiles( newFiles )
+      setFiles(newFiles)
       saveFilesToStore(newFiles)
     })
    }
@@ -131,9 +131,21 @@ function App() {
     }
     setFiles({ ...files, [newID]: newFile })
   }
-  const saveCurrentFile = (id) => {
-    fileHelper.writeFile(join(savedLocation, `${activeFile.title}.md`),activeFile.body).then(() => {
+  const saveCurrentFile = () => {
+    const { path, body, title } = activeFile
+    fileHelper.writeFile(path, body).then(() => {
       setUnsavedFileIDs(unsavedFileIDs.filter(id => id !== activeFile.id))
+    })
+  }
+  const importFiles = () => {
+    remote.dialog.showOpenDialog({
+      title:'选择导入的文件',
+      properties: ['openFile', 'multiSelections'],
+      filters: [
+        {name:'Markdown files', extensions: ['md']}
+      ]
+    }, (path) => {
+      console.log(path)
     })
   }
   return (
@@ -164,6 +176,7 @@ function App() {
                 text="导入"
                 colorClass="btn-success"
                 icon={faFileImport}
+                onBtnClick={importFiles}
               />
             </div>
           </div>
