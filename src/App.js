@@ -13,7 +13,7 @@ import "easymde/dist/easymde.min.css";
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css'
 
-const { join, dirname } = window.require('path')
+const { join, dirname, basename, extname } = window.require('path')
 const { remote } = window.require('electron')
 const Store = window.require('electron-store')
 const fileStore = new Store({'name':'cloud file'})
@@ -132,20 +132,46 @@ function App() {
     setFiles({ ...files, [newID]: newFile })
   }
   const saveCurrentFile = () => {
-    const { path, body, title } = activeFile
+    const { path, body } = activeFile
     fileHelper.writeFile(path, body).then(() => {
       setUnsavedFileIDs(unsavedFileIDs.filter(id => id !== activeFile.id))
     })
   }
   const importFiles = () => {
+    console.log('in')
     remote.dialog.showOpenDialog({
       title:'选择导入的文件',
       properties: ['openFile', 'multiSelections'],
       filters: [
         {name:'Markdown files', extensions: ['md']}
       ]
-    }, (path) => {
-      console.log(path)
+    }, (paths) => {
+      console.log(paths)
+      if (Array.isArray(paths)){
+       const filteredPaths = paths.filter(path => {
+         const alreadyAdded = Object.values(files).find(file => {
+           return file.path === path
+         })
+         return !alreadyAdded
+       })
+       const importFilesArr = filteredPaths.map(path => {
+         return {
+           id: uuidv4(),
+           title: basename(path, extname(path)),
+           path,
+         }
+       })
+       const newFiles = { ...files, ...flattenArr(importFilesArr)}
+       setFiles(newFiles)
+       saveFilesToStore(newFiles)
+       if(importFilesArr.length > 0){
+         remote.dialog.showMessageBox({
+           type: 'info',
+           title: '文件导入',
+           message: '文件导入成功'
+         })
+       }
+      }
     })
   }
   return (
