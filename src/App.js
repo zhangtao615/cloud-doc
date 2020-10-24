@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from 'react'
+import React, { Fragment, useState, useEffect } from 'react'
 import { faPlus, faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from "react-simplemde-editor"
 import { v4 as uuidv4 } from 'uuid';
@@ -12,10 +12,11 @@ import FileSearch from './components/FileSearch'
 import FileList from './components/FileList'
 import ButtonBtn from './components/ButtonBtn'
 import TabList from './components/TabList'
+import useIpcRenderer from './hooks/useIpcRenderer'
 
 // require node.js modules
 const { join, basename, extname, dirname } = window.require('path')
-const { remote, mainWindow } = window.require('electron')
+const { remote, mainWindow, ipcRenderer } = window.require('electron')
 const Store = window.require('electron-store')
 const fileStore = new Store({'name': 'Files Data'})
 
@@ -83,11 +84,13 @@ function App() {
   }
 
   const fileChange = (id, value) => {
-    const newFile = { ...files[id], body: value }
-    setFiles({ ...files, [id]: newFile })
-    // update unsavedIDs
-    if (!unsavedFileIDs.includes(id)) {
-      setUnsavedFileIDs([ ...unsavedFileIDs, id])
+    if (value !== files[id].body) {
+      const newFile = { ...files[id], body: value }
+      setFiles({ ...files, [id]: newFile })
+      // update unsavedIDs
+      if (!unsavedFileIDs.includes(id)) {
+        setUnsavedFileIDs([ ...unsavedFileIDs, id])
+      }
     }
   }
   const deleteFile = (id) => {
@@ -185,6 +188,11 @@ function App() {
       } 
     })
   }
+  useIpcRenderer({
+    'create-new-file': createNewFile,
+    'import-file': importFiles,
+    'save-edit-file': saveCurrentFile
+  })
   return (
     <div className="App container-fluid px-0">
       <div className="row no-gutters">
@@ -240,12 +248,6 @@ function App() {
                 options={{
                   minHeight: '600px',
                 }}
-              />
-              <ButtonBtn 
-                text="保存"
-                colorClass="btn-success"
-                icon={faSave}
-                onBtnClick={saveCurrentFile}
               />
             </Fragment>
           }
