@@ -1,5 +1,5 @@
-import React, { Fragment, useState, useEffect } from 'react'
-import { faPlus, faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
+import React, { Fragment, useState } from 'react'
+import { faPlus, faFileImport} from '@fortawesome/free-solid-svg-icons'
 import SimpleMDE from "react-simplemde-editor"
 import { v4 as uuidv4 } from 'uuid';
 import { flattenArr, objToArr } from './utils/helper'

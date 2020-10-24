@@ -1,4 +1,4 @@
-const { app } = require('electron')
+const { app, shell, ipcMain } = require('electron')
 
 let template = [{
   label: '文件',
@@ -137,7 +137,7 @@ if (process.platform === 'darwin') {
       label: '设置',
       accelerator: 'Command+,',
       click: () => {
-        
+        ipcMain.emit('open-settings-window')
       }
     }, {
       label: '服务',
@@ -166,6 +166,14 @@ if (process.platform === 'darwin') {
       }
     }]
   })
-}
+} else {
+  template[0].submenu.push({
+    label: '设置',
+    accelerator: 'Ctrl+',
+    click : () => {
+      ipcMain.emit('open-settings-window')
+    }
+  })
+} 
 
 module.exports = template
