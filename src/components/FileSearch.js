@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSearch , faTimes } from '@fortawesome/free-solid-svg-icons'
 import useKeyPress from '../hooks/useKeyPress'
 
-const FileSearch = ({title,onFileSearch}) => {
+const FileSearch = ({title, onFileSearch}) => {
     const [inputActive,setInputActive] = useState(false);
     const [value,setValue] = useState('');
     const enterPressed = useKeyPress(13);

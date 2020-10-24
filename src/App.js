@@ -76,7 +76,7 @@ function App() {
     setOpenedFileIDs(tabsWithout)
     // set the active to the first opened tab if still tabs left
     if (tabsWithout.length > 0) {
-      setActiveFileID(tabsWithout[0])
+      setActiveFileID(tabsWithout[tabsWithout.length - 1])
     } else {
       setActiveFileID('')
     }
