@@ -1,52 +1,54 @@
-import React from "react";
+import React from 'react'
+import PropTypes from 'prop-types'
+import classNames from 'classnames'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {faTimes } from '@fortawesome/free-solid-svg-icons'
-import classNames from "classnames"
+import { faTimes } from '@fortawesome/free-solid-svg-icons'
 import './TabList.scss'
-import PropTypes from 'prop-types';
 
-const TabList = ({ files, activedId, unsavedIds, onTabClick, onCloseTab}) => {
-    return (
-        <ul className="nav nav-pills tablist-component">
-            { files.map(files => {
-                const withUnsavedMark = unsavedIds.includes(files.id) 
-                const fClassName = classNames({
-                    'nav-link':true,
-                    'active':files.id === activedId,
-                    "withUnsaved": withUnsavedMark
-                })
-                return (
-                    <li className="nav-item" key={files.id}>
-                        <a href="#"
-                         className={fClassName}
-                         onClick={(e) => {e.preventDefault();onTabClick(files.id);}}>
-                          {files.title}
-                          <span className="ml-2 close-icon">
-                            <FontAwesomeIcon
-                             title="关闭"
-                             icon={faTimes}
-                             onClick={(e)=> {e.stopPropagation(); onCloseTab(files.id)}}
-                             ></FontAwesomeIcon>
-                          </span>
-                          { withUnsavedMark && <span className="rounded-circle unsaved-icon ml-2"></span>}
-                        </a>
-                    </li>
-                )
-            })
-
-            }
-        </ul>
-    )
+const TabList = ({ files, activeId, unsaveIds, onTabClick, onCloseTab}) => {
+  return (
+    <ul className="nav nav-pills tablist-component">
+      {files.map(file => {
+        const withUnsavedMark = unsaveIds.includes(file.id)
+        const fClassName = classNames({
+          'nav-link': true,
+          'active': file.id === activeId,
+          'withUnsaved': withUnsavedMark
+        })
+        return (
+          <li className="nav-item" key={file.id}>
+            <a 
+              href="#"
+              className={fClassName}
+              onClick={(e) => {e.preventDefault(); onTabClick(file.id)}}
+            >
+              {file.title}
+              <span 
+                className="ml-2 close-icon"
+                onClick={(e) => {e.stopPropagation(); onCloseTab(file.id)}}
+              >
+                <FontAwesomeIcon
+                  icon={faTimes} 
+                />
+              </span>
+              { withUnsavedMark && <span className="rounded-circle ml-2 unsaved-icon"></span>}
+            </a>
+          </li>
+        )
+      })}
+    </ul>
+  )
 }
 
 TabList.propTypes = {
-    files: PropTypes.array,
-    activedId: PropTypes.string,
-    unsavedIds: PropTypes.array,
-    onTabClick: PropTypes.func,
-    onCloseTab: PropTypes.func,
+  files: PropTypes.array,
+  activeId: PropTypes.string,
+  unsaveIds: PropTypes.array,
+  onTabClick: PropTypes.func,
+  onCloseTab: PropTypes.func,
 }
 TabList.defaultProps = {
-    unsavedIds: []
+  unsaveIds: []
 }
-export default TabList;
+
+export default TabList

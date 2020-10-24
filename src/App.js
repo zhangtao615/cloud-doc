@@ -1,25 +1,27 @@
-import React,{Fragment, useState} from 'react';
+import React, { Fragment, useState } from 'react'
+import { faPlus, faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
+import SimpleMDE from "react-simplemde-editor"
+import { v4 as uuidv4 } from 'uuid';
+import { flattenArr, objToArr } from './utils/helper'
+import fileHelper from './utils/fileHelper'
+import './App.css'
+import 'bootstrap/dist/css/bootstrap.min.css'
+import "easymde/dist/easymde.min.css"
+
 import FileSearch from './components/FileSearch'
 import FileList from './components/FileList'
-// import defaultFiles  from './utils/defaultFiles'
-import {flattenArr, objToArr} from './utils/helper'
-import fileHelper from './utils/fileHelper'
 import ButtonBtn from './components/ButtonBtn'
 import TabList from './components/TabList'
-import { faPlus , faFileImport, faSave } from '@fortawesome/free-solid-svg-icons'
-import SimpleMDE from "react-simplemde-editor";
-import { v4 as uuidv4 } from 'uuid';
-import "easymde/dist/easymde.min.css";
-import './App.css';
-import 'bootstrap/dist/css/bootstrap.min.css'
 
-const { join, dirname, basename, extname } = window.require('path')
-const { remote } = window.require('electron')
+// require node.js modules
+const { join, basename, extname, dirname } = window.require('path')
+const { remote, mainWindow } = window.require('electron')
 const Store = window.require('electron-store')
-const fileStore = new Store({'name':'cloud file'})
+const fileStore = new Store({'name': 'Files Data'})
 
 const saveFilesToStore = (files) => {
-  const filesStoreObj = objToArr(files).reduce((result,file) => {
+  // we don't have to store any info in file system, eg: isNew, body ,etc
+  const filesStoreObj = objToArr(files).reduce((result, file) => {
     const { id, path, title, createdAt } = file
     result[id] = {
       id,
@@ -29,58 +31,62 @@ const saveFilesToStore = (files) => {
     }
     return result
   }, {})
-  fileStore.set('files',filesStoreObj)
+  fileStore.set('files', filesStoreObj)
 }
 
 function App() {
-  const [files, setFiles] = useState(fileStore.get('files') || {}) //已有的markdown文档
-  const [activeFileID, setActiveFileID] = useState('') //正在展示的markdown文档
-  const [openFileIDs, setOpenFileIDs] = useState([]) //所有打开的markdown文档
-  const [unsavedFileIDs, setUnsavedFileIDs] = useState([]) //未保存的的markdown文档
-  const [searchedFiles, setSearchedFiles] = useState([]) //搜索结果的文件
+  const [ files, setFiles ] = useState(fileStore.get('files') || {})
+  const [ activeFileID, setActiveFileID ] =useState('')
+  const [ openedFileIDs, setOpenedFileIDs ] = useState([])
+  const [ unsavedFileIDs, setUnsavedFileIDs ] = useState([])
+  const [ searchedFiles, setSearchedFiles ] = useState([])
   const filesArr = objToArr(files)
-  const fileListArr = searchedFiles.length > 0 ? searchedFiles : filesArr
-  const savedLocation = remote.app.getPath('desktop') //存储文件地址
-  const openedFiles = openFileIDs.map(openID => {
+  const savedLocation = remote.app.getPath('documents')
+  const activeFile = files[activeFileID]
+  const openedFiles = openedFileIDs.map(openID => {
     return files[openID]
   })
-  const activeFile = files[activeFileID]
-  //点击打开某个markdown文档
+  const fileListArr = (searchedFiles.length > 0) ? searchedFiles : filesArr
+
   const fileClick = (fileID) => {
-    //当前点击的文件ID
+    // set current active file
     setActiveFileID(fileID)
     const currentFile = files[fileID]
     if (!currentFile.isLoaded) {
       fileHelper.readFile(currentFile.path).then(value => {
-        const newFile = { ...files[fileID], body: value, isLOaded: true }
-        setFiles({ ...files, [fileID]: newFile})
+        const newFile = { ...files[fileID], body: value, isLoaded: true }
+        setFiles({ ...files, [fileID]: newFile })
       })
     }
-    if(!openFileIDs.includes(fileID)){//如果文件未打开
-      //将这个文件加入到打开数组中
-      setOpenFileIDs([ ...openFileIDs, fileID])
+    // if openedFiles don't have the current ID
+    // then add new fileID to openedFiles
+    if (!openedFileIDs.includes(fileID)) {
+      setOpenedFileIDs([ ...openedFileIDs, fileID ])
     }
   }
-  //点击某个tab页
+
   const tabClick = (fileID) => {
+    // set current active file
     setActiveFileID(fileID)
   }
-  //关闭某个markdown文件
+
   const tabClose = (id) => {
-    const tabWithout = openFileIDs.filter(fileID => fileID !== id)
-    setOpenFileIDs(tabWithout)
-    //关闭当前文件后的处理
-    if(tabWithout.length > 0){
-      setActiveFileID(tabWithout[tabWithout.length-1])
-    }else {
+    //remove current id from openedFileIDs
+    const tabsWithout = openedFileIDs.filter(fileID => fileID !== id)
+    setOpenedFileIDs(tabsWithout)
+    // set the active to the first opened tab if still tabs left
+    if (tabsWithout.length > 0) {
+      setActiveFileID(tabsWithout[0])
+    } else {
       setActiveFileID('')
     }
   }
-  const fileChange = (id,value) => {
-    //更新文件
-    const newFile = { ...files[id],body:value}
-    setFiles({ ...files,[id]:newFile})
-    if (!unsavedFileIDs.includes(id)){
+
+  const fileChange = (id, value) => {
+    const newFile = { ...files[id], body: value }
+    setFiles({ ...files, [id]: newFile })
+    // update unsavedIDs
+    if (!unsavedFileIDs.includes(id)) {
       setUnsavedFileIDs([ ...unsavedFileIDs, id])
     }
   }
@@ -93,33 +99,38 @@ function App() {
         const { [id]: value, ...afterDelete } = files
         setFiles(afterDelete)
         saveFilesToStore(afterDelete)
+        // close the tab if opened
         tabClose(id)
       })
     }
   }
   const updateFileName = (id, title, isNew) => {
-   const newPath = isNew ? join(savedLocation, `${title}.md`) : join(dirname(files[id].path), `${title}.md`)
-   const modifiedFile = { ...files[id], title, isNew: false, path:newPath}
-   const newFiles = { ...files, [id]:modifiedFile}
-   if(isNew) {
-    fileHelper.writeFile(newPath, files[id].body).then(() => {
-      setFiles( newFiles )
-      saveFilesToStore(newFiles)
-    })
-   }else{
-    const oldPath = files[id].path
-    fileHelper.renameFile(oldPath, newPath).then(()=>{
-      setFiles(newFiles)
-      saveFilesToStore(newFiles)
-    })
-   }
-   
+    // newPath should be different based on isNew
+    // if isNew is false, path should be old dirname + new title
+    const newPath = isNew ? join(savedLocation, `${title}.md`)
+    : join(dirname(files[id].path), `${title}.md`)
+    const modifiedFile = { ...files[id], title, isNew: false, path: newPath }
+    const newFiles = { ...files, [id]: modifiedFile }
+    if (isNew) {
+      fileHelper.writeFile(newPath, files[id].body).then(() => {
+        setFiles(newFiles)
+        saveFilesToStore(newFiles)
+      })
+    } else {
+      const oldPath = files[id].path
+      fileHelper.renameFile(oldPath, newPath).then(() => {
+        setFiles(newFiles)
+        saveFilesToStore(newFiles)
+      })
+    }
+    
   }
   const fileSearch = (keyword) => {
-    const newFiles = filesArr.filter(files => files.title.includes(keyword))
+    // filter out the new files based on the keyword
+    const newFiles = filesArr.filter(file => file.title.includes(keyword))
     setSearchedFiles(newFiles)
   }
-  //创建新文档
+
   const createNewFile = () => {
     const newID = uuidv4()
     const newFile = {
@@ -132,65 +143,65 @@ function App() {
     setFiles({ ...files, [newID]: newFile })
   }
   const saveCurrentFile = () => {
-    const { path, body } = activeFile
-    fileHelper.writeFile(path, body).then(() => {
+    fileHelper.writeFile(activeFile.path,
+      activeFile.body
+    ).then(() => {
       setUnsavedFileIDs(unsavedFileIDs.filter(id => id !== activeFile.id))
     })
   }
   const importFiles = () => {
-    console.log('in')
-    remote.dialog.showOpenDialog({
+    remote.dialog.showOpenDialog(mainWindow, {
       title:'选择导入的文件',
-      properties: ['openFile', 'multiSelections'],
+      properties:  ['openFile', 'multiSelections'],
       filters: [
-        {name:'Markdown files', extensions: ['md']}
+        {name: 'Markdown files', extensions: ['md']}
       ]
-    }, (paths) => {
-      console.log(paths)
+    }).then(res => {
+      const paths = res.filePaths
       if (Array.isArray(paths)){
-       const filteredPaths = paths.filter(path => {
-         const alreadyAdded = Object.values(files).find(file => {
-           return file.path === path
-         })
-         return !alreadyAdded
-       })
-       const importFilesArr = filteredPaths.map(path => {
-         return {
-           id: uuidv4(),
-           title: basename(path, extname(path)),
-           path,
-         }
-       })
-       const newFiles = { ...files, ...flattenArr(importFilesArr)}
-       setFiles(newFiles)
-       saveFilesToStore(newFiles)
-       if(importFilesArr.length > 0){
-         remote.dialog.showMessageBox({
-           type: 'info',
-           title: '文件导入',
-           message: '文件导入成功'
-         })
-       }
-      }
+        const filteredPaths = paths.filter(path => {
+          const alreadyAdded = Object.values(files).find(files => {
+            return files.path === path
+          })
+          return !alreadyAdded
+        })
+        const importFilesArr = filteredPaths.map(path => {
+          return {
+            id: uuidv4(),
+            title: basename(path, extname(path)),
+            path,
+          }
+        })
+        const newFiles = { ...files, ...flattenArr(importFilesArr)}
+        setFiles(newFiles)
+        saveFilesToStore(newFiles)
+        if(importFilesArr.length > 0){
+          remote.dialog.showMessageBox({
+            type: 'info',
+            title: '文件导入',
+            message: `成功导入${importFilesArr.length}文件`
+          })
+        }
+      } 
     })
   }
   return (
     <div className="App container-fluid px-0">
-      <div className="row  no-gutters">
-        <div className="col-3 bg-light left-pannel">
+      <div className="row no-gutters">
+        <div className="col-3 bg-light left-panel">
           <FileSearch 
-            title="我的云文档"
+            title='My Document'
             onFileSearch={fileSearch}
-          ></FileSearch>
-          <FileList
-           files={fileListArr}
-           onFileClick={fileClick}
-           onFileDelete={deleteFile}
-           onSaveEdit={updateFileName}
-          ></FileList>
+          />
+          <FileList 
+            files={fileListArr}
+            onFileClick={fileClick}
+            onFileDelete={deleteFile}
+            onSaveEdit={updateFileName}
+          />
           <div className="row no-gutters button-group">
             <div className="col">
-              <ButtonBtn
+              <ButtonBtn 
                 text="新建"
                 colorClass="btn-primary"
                 icon={faPlus}
@@ -198,7 +209,7 @@ function App() {
               />
             </div>
             <div className="col">
-              <ButtonBtn
+              <ButtonBtn 
                 text="导入"
                 colorClass="btn-success"
                 icon={faFileImport}
@@ -208,41 +219,36 @@ function App() {
           </div>
         </div>
         <div className="col-9 right-panel">
-          {!activeFile && 
+          { !activeFile && 
             <div className="start-page">
               选择或者创建新的 Markdown 文档
             </div>
           }
-          { activeFile && 
+          { activeFile &&
             <Fragment>
               <TabList
                 files={openedFiles}
-                unsavedIds={unsavedFileIDs}
+                activeId={activeFileID}
+                unsaveIds={unsavedFileIDs}
                 onTabClick={tabClick}
                 onCloseTab={tabClose}
-                activedId={activeFileID}
-              ></TabList>
-              <SimpleMDE className="mt-2"
-                key={activeFile && activeFile.id}
+              />
+              <SimpleMDE
+                key={activeFile && activeFile.id} 
                 value={activeFile && activeFile.body}
                 onChange={(value) => {fileChange(activeFile.id, value)}}
                 options={{
-                  minHeight:'610px',
-                  autosave: {
-                    enabled:true,
-                    delay:1000
-                  },
-                  tabSize: 2
+                  minHeight: '600px',
                 }}
-              ></SimpleMDE>
-              <ButtonBtn
+              />
+              <ButtonBtn 
                 text="保存"
                 colorClass="btn-success"
                 icon={faSave}
                 onBtnClick={saveCurrentFile}
               />
-          </Fragment>
-        }
+            </Fragment>
+          }
         </div>
       </div>
     </div>

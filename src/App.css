@@ -1,20 +1,19 @@
 .icon-button {
-  background:none;
-  border: 0;
+  background: none;
+  border: none;
   color: inherit;
 }
 .c-link {
   cursor: pointer;
 }
-
 .start-page {
   font-size: 30px;
   height: 300px;
   line-height: 300px;
-  color:#cccccc;
+  color: #ccc;
   text-align: center;
 }
-.left-pannel {
+.left-panel {
   min-height: 100vh;
   position: relative;
 }
