@@ -16,6 +16,7 @@
     "concurrently": "^5.3.0",
     "electron-store": "^6.0.1",
     "node-sass": "^4.14.1",
+    "qiniu": "^7.3.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "react-scripts": "3.4.3",
