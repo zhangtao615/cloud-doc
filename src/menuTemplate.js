@@ -1,30 +1,34 @@
 const { app, shell, ipcMain } = require('electron')
+const Store = require('electron-store')
+const settingsStore = new Store({ name: 'Settings'})
 
+const qiniuIsConfiged =  ['accessKey', 'secretKey', 'bucketName'].every(key => !!settingsStore.get(key))
+let enableAutoSync = settingsStore.get('enableAutoSync')
 let template = [{
   label: '文件',
   submenu: [{
     label: '新建',
     accelerator: 'CmdOrCtrl+N',
     click: (menuItem, browserWindow, event) => {
-      browserWindow.send('create-new-file')
+      browserWindow.webContents.send('create-new-file')
     }
   },{
     label: '保存',
     accelerator: 'CmdOrCtrl+S',
     click: (menuItem, browserWindow, event) => {
-      browserWindow.send('save-edit-file')
+      browserWindow.webContents.send('save-edit-file')
     }
   },{
     label: '搜索',
     accelerator: 'CmdOrCtrl+F',
     click: (menuItem, browserWindow, event) => {
-      browserWindow.send('search-file')
+      browserWindow.webContents.send('search-file')
     }
   },{
     label: '导入',
     accelerator: 'CmdOrCtrl+O',
     click: (menuItem, browserWindow, event) => {
-      browserWindow.send('import-file')
+      browserWindow.webContents.send('import-file')
     }
   }]
 },
@@ -61,6 +65,35 @@ let template = [{
   ]
 },
 {
+  label: '云同步',
+  submenu: [{
+    label: '设置',
+    accelerator: 'CmdOrCtrl+,',
+    click: () => {
+      ipcMain.emit('open-settings-window')
+    }
+  }, {
+    label: '自动同步',
+    type: 'checkbox',
+    enabled: qiniuIsConfiged,
+    checked: enableAutoSync,
+    click: () => {
+      settingsStore.set('enableAutoSync', !enableAutoSync)
+    }
+  }, {
+    label: '全部同步至云端',
+    enabled: qiniuIsConfiged,
+    click: () => {
+    }
+  }, {
+    label: '从云端下载到本地',
+    enabled: qiniuIsConfiged,
+    click: () => {
+      
+    }
+  }]
+},
+{
   label: '视图',
   submenu: [
     {
@@ -72,7 +105,7 @@ let template = [{
       }
     },
     {
-      label: '进入全屏幕',
+      label: '切换全屏幕',
       accelerator: (() => {
         if (process.platform === 'darwin')
           return 'Ctrl+Command+F';
@@ -85,7 +118,7 @@ let template = [{
       }
     },
     {
-      label: '显示开发者工具',
+      label: '切换开发者工具',
       accelerator: (function() {
         if (process.platform === 'darwin')
           return 'Alt+Command+I';
@@ -169,11 +202,11 @@ if (process.platform === 'darwin') {
 } else {
   template[0].submenu.push({
     label: '设置',
-    accelerator: 'Ctrl+',
-    click : () => {
+    accelerator: 'Ctrl+,',
+    click: () => {
       ipcMain.emit('open-settings-window')
     }
   })
-} 
+}
 
 module.exports = template
