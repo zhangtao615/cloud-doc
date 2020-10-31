@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, Menu, ipcMain, dialog, webContents } = require('electron')
 const isDev = require('electron-is-dev')
 const path = require('path')
 const menuTemplate = require('./src/menuTemplate')
@@ -72,6 +72,28 @@ app.on('ready', () => {
       if (error.statusCode === 612) {
         mainWindow.webContents.send('file-downloaded', { status: 'no-file', id })
       }
+    })
+  })
+  ipcMain.on('upload-all-to-qiniu', () => {
+    const manager = createManager()
+    const filesObj = fileStore.get('files') || {}
+    const uploadPromiseArr = Object.keys(filesObj).map(key => {
+      const file = filesObj[key]
+      return manager.uploadFile(`${file.title}.md`, file.path)
+    })
+    Promise.all(uploadPromiseArr).then(result => {
+      console.log(result)
+      dialog.showMessageBox({
+        type: 'info',
+        title: `成功上传了${result.length}个文件`,
+        message: `成功上传了${result.length}个文件`
+      })
+      mainWindow.webContents.send('files-uploaded', true)
+    }).catch((err) => {
+      console.log(err)
+      dialog.showErrorBox('上传失败', '请检查七牛云参数是否正确')
+    }).finally(() => {
+      mainWindow.webContents.send('loading-status', false)
     })
   })
   ipcMain.on('config-is-saved', () => {

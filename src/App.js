@@ -13,6 +13,7 @@ import FileList from './components/FileList'
 import ButtonBtn from './components/ButtonBtn'
 import TabList from './components/TabList'
 import useIpcRenderer from './hooks/useIpcRenderer'
+import Loader from './components/Loader'
 
 // require node.js modules
 const { join, basename, extname, dirname } = window.require('path')
@@ -45,6 +46,7 @@ function App() {
   const [ openedFileIDs, setOpenedFileIDs ] = useState([])
   const [ unsavedFileIDs, setUnsavedFileIDs ] = useState([])
   const [ searchedFiles, setSearchedFiles ] = useState([])
+  const [ loading, setLoading ] = useState(false)
   const filesArr = objToArr(files)
   const savedLocation = remote.app.getPath('documents')
   const activeFile = files[activeFileID]
@@ -223,12 +225,27 @@ function App() {
       saveFilesToStore(newFiles)
     }) 
   }
+  const filesUploaded = () => {
+    const newFiles = objToArr(files).reduce((result, file) => {
+      const currentTime = new Date().getTime()
+      result[file.id] = {
+        ...files[file.id],
+        isSynced: true,
+        updateAt: currentTime
+      }
+      return result
+    }, {})
+    setFiles(newFiles)
+    saveFilesToStore(newFiles)
+  }
   useIpcRenderer({
     'create-new-file': createNewFile,
     'import-file': importFiles,
     'save-edit-file': saveCurrentFile,
     'active-file-uploaded': activeFileUploaded,
     'file-downloaded': activeFileDownloaded,
+    'loading-status': (message, status) => { setLoading(status) },
+    'files-uploaded': filesUploaded
   })
   return (
     <div className="App container-fluid px-0">
@@ -268,6 +285,9 @@ function App() {
             <div className="start-page">
               选择或者创建新的 Markdown 文档
             </div>
+          }
+          { loading &&
+            <Loader />
           }
           { activeFile &&
             <Fragment>
