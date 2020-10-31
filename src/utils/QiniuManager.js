@@ -1,6 +1,7 @@
 const qiniu = require('qiniu')
 const axios = require('axios')
 const fs = require('fs')
+const { resolve } = require('path')
 
 class QiniuManager {
   constructor (accessKey, secretKey, bucket) {
@@ -35,7 +36,12 @@ class QiniuManager {
       qiniu.rpc.postWithoutForm(reqURL, createToken, this.handleCallback(resolve, reject))
     })
   }
-  generateDownloadLink(key) {
+  getState (key) {
+    return new Promise((resolve, reject) => {
+      this.bucketManager.stat(this.bucket, key, this.handleCallback(resolve, reject))
+    })
+  }
+  generateDownloadLink (key) {
     const domainPromise = this.publicBucketDomain ? Promise.resolve([this.publicBucketDomain]) : this.getBucketDomain()
     return domainPromise.then(data => {
       if (Array.isArray(data) && data.length > 0) {
